@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using OpenCUDm.Attributes;
 using OpenCUDm.Models;
+using Bogus.Extensions.UnitedStates;
 
 namespace OpenCUDm.Controllers
 {
@@ -21,6 +22,8 @@ namespace OpenCUDm.Controllers
         {
             List<Member> result = new List<Member>();
 
+            var faker = new Bogus.Faker();
+
             for(int i=1;i<11;i++)
             {
                 Member m = new Member();
@@ -28,22 +31,52 @@ namespace OpenCUDm.Controllers
                 m.ID = i;
                 m.LongID = Guid.NewGuid();
                 m.BDate = DateTime.Now;
-                m.FirstName = Faker.Name.First();
-                m.LastName = Faker.Name.Last();
-                m.MiddleName = Faker.Name.Middle();
+                m.FirstName = faker.Name.FirstName();
+                m.LastName = faker.Name.LastName();
+                m.MiddleName = faker.Name.FirstName(); // fake a middle name
 
                 m.MemberAddresses = new List<MemberAddress>();
                 MemberAddress a = new MemberAddress();
+                a.ID = 1;
                 a.MemberID = i;
-                a.Address1 = Faker.Address.StreetAddress();
-                a.Address2 = Faker.Address.SecondaryAddress();
+                a.IsCurrent = true;
+                a.Address1 = faker.Address.StreetAddress();
+                a.Address2 = faker.Address.SecondaryAddress();
                 a.AddressType = 1;
-                a.State = Faker.Address.UsState();
-                a.City = Faker.Address.City();
-                a.Zip = Faker.Address.ZipCode();
+                a.State = faker.Address.State();
+                a.City = faker.Address.City();
+                a.Zip = faker.Address.ZipCode();
+                m.MemberAddresses.Add(a);
+
+                a = new MemberAddress();
+                a.ID = 2;
+                a.MemberID = i;
+                a.IsCurrent = false;
+                a.Address1 = faker.Address.StreetAddress();
+                a.Address2 = faker.Address.SecondaryAddress();
+                a.AddressType = 1;
+                a.State = faker.Address.State();
+                a.City = faker.Address.City();
+                a.Zip = faker.Address.ZipCode();
                 m.MemberAddresses.Add(a);
 
                 m.IDNumbers = new List<MemberIDNumbers>();
+
+                MemberIDNumbers b = new MemberIDNumbers();
+                b.ID = 1;
+                b.MemberID = i;
+                b.IDNumberType = 1;
+                b.IDNumber = faker.Person.Ssn();
+
+                m.IDNumbers.Add(b);
+                b = new MemberIDNumbers();
+                b.ID = 2;
+                b.MemberID = i;
+                b.IDNumberType = 2;
+                b.IDNumber = faker.Vehicle.Vin();
+                m.IDNumbers.Add(b);
+
+
 
                 result.Add(m);
             }
