@@ -7,9 +7,11 @@
   <ItemGroup>
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.0.2" />
     <PackageReference Include="Faker.Net" Version="1.4.108" />
+    <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="5.0.1" />
   </ItemGroup>
 
   <ItemGroup>
     <Folder Include="Attributes\" />
+    <Folder Include="Models\" />
   </ItemGroup>
 </Project>
