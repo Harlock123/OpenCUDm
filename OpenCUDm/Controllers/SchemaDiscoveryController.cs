@@ -103,11 +103,13 @@ namespace OpenCUDm.Controllers
                             "from INFORMATION_SCHEMA.COLUMNS as A " +
                             "LEFT OUTER JOIN " +
                             "INFORMATION_SCHEMA.TABLES B on A.TABLE_NAME = B.TABLE_NAME " +
-                            "WHERE A.TABLE_NAME = '" + TN + "' " +
+                            "WHERE A.TABLE_NAME = @TABLENAME " +
                             "ORDER BY A.TABLE_NAME,A.ORDINAL_POSITION";
 
 
             SqlDataAdapter da = new SqlDataAdapter(sqlstring, cn);
+
+            da.SelectCommand.Parameters.AddWithValue("@TABLENAME",TN);
 
             System.Data.DataSet d = new System.Data.DataSet();
 
