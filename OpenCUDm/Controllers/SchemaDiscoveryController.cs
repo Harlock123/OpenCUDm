@@ -11,6 +11,8 @@ using OpenCUDm;
 using Bogus.Extensions.UnitedStates;
 using System.Data.SqlClient;
 using Newtonsoft.Json;
+using Swashbuckle.AspNetCore.SwaggerGen;
+
 
 namespace OpenCUDm.Controllers
 {
@@ -22,7 +24,7 @@ namespace OpenCUDm.Controllers
     {
         [HttpGet]
         [Route("GetAll")]
-        public string GetAll(string CN)
+        public string GetAll(string CN = "Data Source=localhost; Initial Catalog=OPENCUDmDB; User ID=sa; Password=P@ssw0rd")
         {
             string result = "RESULT";
 
@@ -58,7 +60,7 @@ namespace OpenCUDm.Controllers
 
         [HttpGet]
         [Route("GetTables")]
-        public string GetTables(string CN)
+        public string GetTables(string CN = "Data Source=localhost; Initial Catalog=OPENCUDmDB; User ID=sa; Password=P@ssw0rd")
         {
             string result = "RESULT";
 
@@ -88,7 +90,7 @@ namespace OpenCUDm.Controllers
 
         [HttpGet]
         [Route("GetTableSchema")]
-        public string GetTableSchema(string CN,string TN)
+        public string GetTableSchema(string CN = "Data Source=localhost; Initial Catalog=OPENCUDmDB; User ID=sa; Password=P@ssw0rd", string TN = "MemberMain")
         {
             string result = "RESULT";
 
