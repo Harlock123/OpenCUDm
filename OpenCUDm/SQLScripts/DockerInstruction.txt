@@ -1,0 +1,21 @@
+﻿Docker setup instruction MACos
+
+Make sure Docker dsktop 64 bit is installed for MAC
+
+Open a Terminal and issue this command
+
+docker pull mcr.microsoft.com/mssql/server:2019-latest
+
+then run this command to startup the SQL Image and configure its connection options
+
+Replace the P@ssw0rd with whatever password you want to use
+
+docker run -e 'ACCEPT_EULA=Y' -e 'SA_PASSWORD=P@ssw0rd' -p 1433:1433 -d mcr.microsoft.com/mssql/server:2019-latest
+
+You now have a SQL server running locally 
+
+Azure Data Studio can be used to connect to it and do things like
+
+Create DATABASE {Whatever}
+
+and other things
