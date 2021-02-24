@@ -60,7 +60,8 @@ namespace OpenCUDm.Controllers
 
         [HttpGet]
         [Route("GetTables")]
-        public string GetTables(string CN = "Data Source=localhost; Initial Catalog=OPENCUDmDB; User ID=sa; Password=P@ssw0rd")
+        public string GetTables(
+            string CN = "Data Source=localhost; Initial Catalog=OPENCUDmDB; User ID=sa; Password=P@ssw0rd")
         {
             string result = "RESULT";
 
@@ -86,6 +87,38 @@ namespace OpenCUDm.Controllers
             cn.Dispose();
 
             return result;
+        }
+
+        [HttpGet]
+        [Route("GetListOfTables")]
+        public IEnumerable<string> GetListOfTables(
+            string CN = "Data Source=localhost; Initial Catalog=OPENCUDmDB; User ID=sa; Password=P@ssw0rd")
+        {
+            List<string> result = new List<string>();
+
+            SqlConnection cn = new SqlConnection(CN);
+
+            cn.Open();
+
+            var sqlstring = "SELECT * " +
+                "FROM INFORMATION_SCHEMA.TABLES " +
+                "ORDER BY TABLE_NAME";
+
+            SqlCommand cmd = new SqlCommand(sqlstring, cn);
+
+            SqlDataReader r = cmd.ExecuteReader();
+
+            while (r.Read())
+            {
+                result.Add(r["TABLE_NAME"].ToString());
+            }
+            r.Close();
+            cmd.Dispose();
+            
+            cn.Close();
+            cn.Dispose();
+
+            return result.ToArray();
         }
 
         [HttpGet]

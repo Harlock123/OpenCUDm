@@ -1,0 +1,49 @@
+﻿@page "/SchemaTables"
+@inject HttpClient Http
+
+<h3>Select Table to Codify</h3>
+@if (Tables == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+<select class="form-control selectpicker" @onselect="DoStuff" style="width:30%">
+    <option>--select--</option>
+    @foreach (var item in Tables)
+    {
+        <option>@item</option>
+    }
+</select>
+}
+
+@code {
+    private string[] Tables;
+
+    protected override async Task OnInitializedAsync()
+    {
+
+        var HC = new HttpClient();
+
+        var endpoint = "https://localhost:5001/api/SchemaDiscovery/GetListOfTables?CN=Data%20Source%3Dlocalhost%3B%20Initial%20Catalog%3DOPENCUDmDB%3B%20User%20ID%3Dsa%3B%20Password%3DP%40ssw0rd";
+
+        var request = new HttpRequestMessage(HttpMethod.Get, endpoint);
+
+        request.Headers.Add("ApiKey", "SOMEAPIKEYGOESHERE");
+        request.Headers.Add("ClientId", "SOMECLIENTIDGOESHERE");
+
+
+        using var httpResponse =  await HC.SendAsync(request);
+
+        Tables = await httpResponse.Content.ReadFromJsonAsync<string[]>();
+
+        //Tables = await Http.GetFromJsonAsync<string[]>("https://localhost:5001/api/SchemaDiscovery/GetListOfTables?CN=Data%20Source%3Dlocalhost%3B%20Initial%20Catalog%3DOPENCUDmDB%3B%20User%20ID%3Dsa%3B%20Password%3DP%40ssw0rd");
+    }
+
+    private void DoStuff()
+    {
+
+    }
+
+
+}
