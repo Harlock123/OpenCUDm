@@ -26,11 +26,12 @@ namespace OpenCUDm
 					encrypted = Convert.ToBase64String(output);
 
 				}
-
+#pragma warning disable CS0168 // The variable 'ex' is declared but never used
 				catch (Exception ex)
 				{
-
+					// We should do somthing here
 				}
+#pragma warning restore CS0168 // The variable 'ex' is declared but never used
 
 				return encrypted;
 			}
@@ -60,14 +61,15 @@ namespace OpenCUDm
 					decypted = Encoding.UTF8.GetString(decryptedOutput);
 
 				}
+				
+#pragma warning disable CS0168 // The variable 'ex' is declared but never used
+			catch (Exception ex)
+			{
+				// We should do somthing here
+			}
+#pragma warning restore CS0168 // The variable 'ex' is declared but never used
 
-				catch (Exception ex)
-				{
-
-
-				}
-
-				return decypted;
+			return decypted;
 			}
 		}
 
@@ -99,14 +101,12 @@ namespace OpenCUDm
 
 			}
 
+#pragma warning disable CS0168 // The variable 'ex' is declared but never used
 			catch (Exception ex)
 			{
-				
+				// We should do somthing here
 			}
-			finally
-			{
-				
-			}
+#pragma warning restore CS0168 // The variable 'ex' is declared but never used
 
 			return csp.CreateDecryptor();
 		}
