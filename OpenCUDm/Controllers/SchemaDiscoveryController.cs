@@ -26,6 +26,7 @@ namespace OpenCUDm.Controllers
         [Route("GetAll")]
         public string GetAll(string CN = "Data Source=localhost; Initial Catalog=OPENCUDmDB; User ID=sa; Password=P@ssw0rd")
         {
+            // On big databases this will likely cause timeouts and other squirrly behaiviors for tool like the CrapTacular SWAGGER
             string result = "RESULT";
 
             SqlConnection cn = new SqlConnection(CN);
