@@ -22,6 +22,13 @@ namespace OpenCUDm.Controllers
     [EnableCors("DefaultPolicy")]
     public class SchemaDiscoveryController : ControllerBase
     {
+        string IDFIELDTYPE = "";
+        string IDFIELDNAME = "";
+        string TableName = "";
+        bool AUTONUMBER = false;
+
+        List<Field> TheFields = null;
+
         [HttpGet]
         [Route("GetAll")]
         public string GetAll(string CN = "Data Source=localhost; Initial Catalog=OPENCUDmDB; User ID=sa; Password=P@ssw0rd")
@@ -291,11 +298,12 @@ namespace OpenCUDm.Controllers
 
             try
             {
-                List<Field> TheFields = (List<Field>)GetTableSchemaFields(CN, TN);
+                TheFields = (List<Field>)GetTableSchemaFields(CN, TN);
+                TableName = TN;
 
-                string IDFIELDTYPE = "";
-                string IDFIELDNAME = "";
-                bool AUTONUMBER = false;
+                //string IDFIELDTYPE = "";
+                //string IDFIELDNAME = "";
+                //bool AUTONUMBER = false;
 
                 foreach (Field f in TheFields)
                 {
@@ -811,8 +819,11 @@ namespace OpenCUDm.Controllers
                 s += "}\n";
                 s += "}\n\n";
 
+                s += GeneratePrivateMethods();
 
                 s += "}\n";
+
+                
 
                 result = s;
 
@@ -882,6 +893,392 @@ namespace OpenCUDm.Controllers
 
             return s;
 
+        }
+
+        private string GeneratePrivateMethods()
+        {
+            string s = "";
+
+            if (AUTONUMBER)
+            {
+                #region AUTONUMBER STUFF
+
+                s = "#region Private Methods\n\n" +
+                    "private string GetParameterSQL() {\n" +
+                    "string sql = \"\";\n";
+
+                s += "if (_" + IDFIELDNAME + " < 1) {\n" +
+                     "sql = \"INSERT INTO " + TableName + "\";\n";
+
+                s += "sql += \"(\";\n";
+
+                string temps = "";
+
+                string lastfield = TheFields[TheFields.Count - 1].FieldName;
+
+                foreach (Field f in TheFields)
+                {
+                    if (!f.IsIdentity)
+                    {
+                        if (temps != "")
+                        {
+                            temps += "], [" + f.FieldName;
+                        }
+                        else
+                        {
+                            temps += "[" + f.FieldName;
+                        }
+
+                        if (temps.Length > 70 && f.FieldName != lastfield) // create a line break but NOT if we are on the LASTFIELD
+                        {
+                            // we want a new line
+
+                            s += "sql += \"" + temps + "],\";\n";
+                            temps = "";
+                        }
+                    }
+                }
+
+                // do we have any hanging fields at the end
+
+                if (temps != "")
+                {
+                    s += "sql += \"" + temps + "])\";\n";
+                }
+                else
+                {
+
+                    if (s.EndsWith(",]\";\n"))
+                    {
+                        // we inadvertantly ended in a mess from the loop above we need to fix it
+
+                        int t = ",]\";\n".Length;
+
+                        s = s.Substring(0, s.Length - t);
+                    }
+
+                    s += "sql += \"]) \";\n";
+                }
+
+                s += "sql += \" VALUES (\";\n";
+
+                // Write the Values as Parameters
+
+                temps = "";
+
+                foreach (Field f in TheFields)
+                {
+                    if (!f.IsIdentity)
+                    {
+                        if (temps != "")
+                        {
+                            temps += ",@" + f.FieldNameConverted;
+                        }
+                        else
+                        {
+                            temps += "@" + f.FieldNameConverted;
+                        }
+
+                        if (temps.Length > 70)
+                        {
+                            // we want a new line
+
+                            s += "sql += \"" + temps + ",\";\n";
+                            temps = "";
+                        }
+                    }
+                }
+
+                // do we have any hanging fields at the end
+
+                if (temps != "")
+                {
+                    s += "sql += \"" + temps + ")\";\n";
+                }
+                else
+                {
+
+                    if (s.EndsWith(",\";\n"))
+                    {
+                        // we unadvertantly ended in a mess from the loop above we need to fix it
+
+                        int t = ",\";\n".Length;
+
+                        s = s.Substring(0, s.Length - t) + "\";\n";
+                    }
+
+                    s += "sql += \") \";\n";
+                }
+
+                s += "} else {\n";
+
+                s += "sql = \"UPDATE " + TableName + " SET \";\n";
+
+                temps = "";
+
+                foreach (Field f in TheFields)
+                {
+                    if (!f.IsIdentity)
+                    {
+                        if (temps != "")
+                        {
+                            temps += ", [" + f.FieldName + "] = @" + f.FieldNameConverted;
+                        }
+                        else
+                        {
+                            temps += "[" + f.FieldName + "] = @" + f.FieldNameConverted;
+                        }
+
+                        if (temps.Length > 70)
+                        {
+                            // we want a new line
+
+                            s += "sql += \"" + temps + ",\";\n";
+                            temps = "";
+                        }
+                    }
+                }
+
+                // do we have any hanging fields at the end
+
+                if (temps != "")
+                {
+                    s += "sql += \"" + temps + "\";\n";
+                }
+                else
+                {
+                    if (s.EndsWith(",\";\n"))
+                    {
+                        // we unadvertantly ended in a mess from the loop above we need to fix it
+
+                        int t = ",\";\n".Length;
+
+                        s = s.Substring(0, s.Length - t) + "\";\n";
+                    }
+
+                    s += "sql += \"\";\n";
+                }
+
+                s += "sql += \" WHERE " + IDFIELDNAME + " = \" + _" + IDFIELDNAME + ".ToString();\n";
+                s += "}\n";
+                s += "return sql;\n";
+                s += "}\n\n";
+
+                s += "private object getDateOrNull(DateTime d)\n";
+                s += "{\n";
+                s += "if ( d == Convert.ToDateTime(null)) {\n";
+                s += "return DBNull.Value;\n";
+                s += "} else {\n";
+                s += "return d;\n";
+                s += "}\n";
+                s += "}\n";
+                s += "#endregion\n";
+
+
+                #endregion
+
+            }
+            else
+            {
+
+                #region Non AutoNumber stuff
+
+                // We are not autonumbering so we have to do some different things here
+
+                s = "#region Private Methods\n\n" +
+                    "private string GetParameterSQLForAdd() {\n" +
+                    "string sql = \"\";\n";
+
+                s += "if (1==1) { // A Hack I suppose but it works...\n" +
+                     "sql = \"INSERT INTO " + TableName + "\";\n";
+
+                s += "sql += \"(\";\n";
+
+                string temps = "";
+
+                string lastfield = TheFields[TheFields.Count - 1].FieldName;
+
+                foreach (Field f in TheFields)
+                {
+                    if (!f.IsIdentity)
+                    {
+                        if (temps != "")
+                        {
+                            temps += "], [" + f.FieldName;
+                        }
+                        else
+                        {
+                            temps += "[" + f.FieldName;
+                        }
+
+                        if (temps.Length > 70 && f.FieldName != lastfield) // create a line break but NOT if we are on the LASTFIELD
+                        {
+                            // we want a new line
+
+                            s += "sql += \"" + temps + "],\";\n";
+                            temps = "";
+                        }
+                    }
+                }
+
+                // do we have any hanging fields at the end
+
+                if (temps != "")
+                {
+                    s += "sql += \"" + temps + "])\";\n";
+                }
+                else
+                {
+
+                    if (s.EndsWith(",]\";\n"))
+                    {
+                        // we inadvertantly ended in a mess from the loop above we need to fix it
+
+                        int t = ",]\";\n".Length;
+
+                        s = s.Substring(0, s.Length - t);
+                    }
+
+                    s += "sql += \"]) \";\n";
+                }
+
+                s += "sql += \" VALUES (\";\n";
+
+                // Write the Values as Parameters
+
+                temps = "";
+
+                foreach (Field f in TheFields)
+                {
+                    if (!f.IsIdentity)
+                    {
+                        if (temps != "")
+                        {
+                            temps += ",@" + f.FieldNameConverted;
+                        }
+                        else
+                        {
+                            temps += "@" + f.FieldNameConverted;
+                        }
+
+                        if (temps.Length > 70)
+                        {
+                            // we want a new line
+
+                            s += "sql += \"" + temps + ",\";\n";
+                            temps = "";
+                        }
+                    }
+                }
+
+                // do we have any hanging fields at the end
+
+                if (temps != "")
+                {
+                    s += "sql += \"" + temps + ")\";\n";
+                }
+                else
+                {
+
+                    if (s.EndsWith(",\";\n"))
+                    {
+                        // we unadvertantly ended in a mess from the loop above we need to fix it
+
+                        int t = ",\";\n".Length;
+
+                        s = s.Substring(0, s.Length - t) + "\";\n";
+                    }
+
+                    s += "sql += \") \";\n";
+                }
+
+                s += "}\n";
+
+                s += "return sql;\n";
+                s += "}\n\n";
+
+
+                s += "private string GetParameterSQLForUpdate() {\n" +
+                   "string sql = \"\";\n";
+
+                s += "sql = \"UPDATE " + TableName + " SET \";\n";
+
+                temps = "";
+
+                foreach (Field f in TheFields)
+                {
+                    if (!f.IsIdentity)
+                    {
+                        if (temps != "")
+                        {
+                            temps += ", [" + f.FieldName + "] = @" + f.FieldNameConverted;
+                        }
+                        else
+                        {
+                            temps += "[" + f.FieldName + "] = @" + f.FieldNameConverted;
+                        }
+
+                        if (temps.Length > 70)
+                        {
+                            // we want a new line
+
+                            s += "sql += \"" + temps + ",\";\n";
+                            temps = "";
+                        }
+                    }
+                }
+
+                // do we have any hanging fields at the end
+
+                if (temps != "")
+                {
+                    s += "sql += \"" + temps + "\";\n";
+                }
+                else
+                {
+                    if (s.EndsWith(",\";\n"))
+                    {
+                        // we inadvertantly ended in a mess from the loop above we need to fix it
+
+                        int t = ",\";\n".Length;
+
+                        s = s.Substring(0, s.Length - t) + "\";\n";
+                    }
+
+                    s += "sql += \"\";\n";
+                }
+
+                // If the field type of the IDFIELD is a number we dont quote it otherwise its quoted
+                if (IDFIELDTYPE == "BIGINT" || IDFIELDTYPE == "LONG" || IDFIELDTYPE == "INT" || IDFIELDTYPE == "SMALLINT" || IDFIELDTYPE == "TINYINT" ||
+                    IDFIELDTYPE == "DECIMAL" || IDFIELDTYPE == "DOUBLE" || IDFIELDTYPE == "MONEY" || IDFIELDTYPE == "CURRENCY" || IDFIELDTYPE == "FLOAT")
+                {
+                    //s += "sql += \" WHERE " + IDFIELDNAME + " = \" + _" + IDFIELDNAME + ".ToString();\n";
+
+                    s += "sql += \" WHERE [" + IDFIELDNAME + "] = @" + IDFIELDNAME + "\";\n";
+
+                }
+                else
+                {
+                    s += "sql += \" WHERE [" + IDFIELDNAME + "] = @" + IDFIELDNAME + "\";\n";
+                }
+
+                s += "return sql;\n";
+                s += "}\n\n";
+
+                s += "private object getDateOrNull(DateTime d)\n";
+                s += "{\n";
+                s += "if ( d == Convert.ToDateTime(null)) {\n";
+                s += "return DBNull.Value;\n";
+                s += "} else {\n";
+                s += "return d;\n";
+                s += "}\n";
+                s += "}\n";
+                s += "#endregion\n";
+
+                #endregion
+
+            }
+            return s;
         }
 
 
