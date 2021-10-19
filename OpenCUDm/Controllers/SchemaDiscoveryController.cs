@@ -835,6 +835,42 @@ namespace OpenCUDm.Controllers
             return DoTheIndentation(result);
         }
 
+        [HttpGet]
+        [Route("GetTableColumns")]
+        public IEnumerable<String> GetTableColumns(
+            string CN = "Data Source=localhost; Initial Catalog=OPENCUDmDB; User ID=sa; Password=P@ssw0rd",
+            string TN = "MemberMain")
+        {
+            List<String> result = new List<String>();
+
+            SqlConnection cn = new SqlConnection(CN);
+
+            cn.Open();
+
+            var sqlstring = "Select A.COLUMN_NAME from INFORMATION_SCHEMA.COLUMNS as A " +
+                            "Where A.TABLE_NAME = @TABLENAME Order By A.ORDINAL_POSITION";
+
+
+            SqlCommand cmd = new SqlCommand(sqlstring, cn);
+            cmd.Parameters.AddWithValue("@TABLENAME", TN);
+
+            SqlDataReader r = cmd.ExecuteReader();
+
+            while (r.Read())
+            {
+                result.Add(r[0].ToString());
+            }
+            r.Close();
+            cmd.Dispose();
+            cn.Close();
+            cn.Dispose();
+
+            return result;
+        }
+
+
+        #region Private Stuff
+
         private string DoTheIndentation(string code)
         {
             StringBuilder sb = new StringBuilder();
@@ -1281,6 +1317,6 @@ namespace OpenCUDm.Controllers
             return s;
         }
 
-
+        #endregion
     }
 }
