@@ -8,17 +8,19 @@
 }
 else
 {
-<select class="form-control selectpicker" @onselect="DoStuff" style="width:30%">
+<select class="form-control selectpicker" @onselect="DoStuff" @onchange="DoStuff" style="width:30%">
     <option>--select--</option>
     @foreach (var item in Tables)
     {
         <option>@item</option>
     }
 </select>
+<code id="TheCode">@TheCode</code>
 }
 
 @code {
     private string[] Tables;
+    private string TheCode = "";
 
     protected override async Task OnInitializedAsync()
     {
@@ -44,6 +46,7 @@ else
     {
         // here we need to feth the selecte tables schema
 
+        TheCode = "public class hello \n{\n}\n";
 
     }
 
